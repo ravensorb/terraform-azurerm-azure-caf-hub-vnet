@@ -1,0 +1,6 @@
+{
+    "name": "terraform-azurerm-azure-caf-hub-vnet",
+    "description": "Terraform module for creating a hub network based on the Microsoft recommended Hub-Spoke network topology",
+    "version": "v1.0.0",
+    "message": "Initial Version"
+}
