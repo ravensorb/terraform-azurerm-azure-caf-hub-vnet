@@ -145,7 +145,7 @@ resource "azurerm_subnet" "snet" {
 #---------------------------------------------------------------
 resource "azurerm_network_security_group" "nsg" {
   for_each            = var.subnets
-  name                = lower("${local.resource_prefix}-nsg-${each.key}-in")
+  name                = lower("${local.resource_prefix}-nsg-${each.key}")
   resource_group_name = local.resource_group_name
   location            = local.location
   tags                = merge({ "ResourceName" = lower("${local.resource_prefix}-nsg-${each.key}-in") }, var.tags, )
@@ -400,15 +400,16 @@ resource "azurerm_storage_account" "storeacc" {
 ## Azure built-in roles
 ## https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles
 
-data "azuread_service_principal" "af_sasp" {
-  object_id = "07cdd199-8f98-4b25-9a89-e50b2b604a28" # Microsoft.StorageSync
-}
+# data "azuread_service_principal" "af_sasp" {
+#   #object_id = "07cdd199-8f98-4b25-9a89-e50b2b604a28" # Microsoft.StorageSync
+#   display_name = "Microsoft.StorageSync"
+# }
 
 resource "azurerm_role_assignment" "storeacc-ra-rdac" {
   count                 = var.limit_network_log_analytics_storage_account_network_access ? 1 : 0
   scope                 = azurerm_storage_account.storeacc.id
-  role_definition_name  = "Reader and Data Access"
-  principal_id          = data.azuread_service_principal.af_sasp.id
+  role_definition_name  = "Reader and Data Access"  
+  principal_id          = "Microsoft.StorageSync" #data.azuread_service_principal.af_sasp.id
 }
 
 # Storage Account Network rules
@@ -540,7 +541,6 @@ resource "azurerm_monitor_diagnostic_setting" "nsg" {
     azurerm_storage_account.storeacc
   ]
 }
-
 
 resource "azurerm_monitor_diagnostic_setting" "fw-diag" {
   count                      = var.create_firewall ? 1 : 0
