@@ -205,6 +205,16 @@ resource "azurerm_route" "rt" {
   next_hop_in_ip_address = azurerm_firewall.fw.0.ip_configuration.0.private_ip_address
 }
 
+resource "azurerm_route" "rte" {
+  for_each              = var.route_table
+  name                  = lower("${local.resource_prefix}-route-to-${each.key}")
+  resource_group_name   = var.resource_group_name
+  route_table_name      = azurerm_route_table.rtout.name 
+  address_prefix        = each.value.address_prefix
+  next_hop_type         = each.value.next_hop_type
+  next_hop_in_ip_address= each.value.next_hop_in_ip_address
+}
+
 #----------------------------------------
 # Private DNS Zone - Default is "true"
 #----------------------------------------
@@ -254,11 +264,19 @@ resource "random_string" "str" {
   }
 }
 
+data "azurerm_public_ip_prefix" "pip_prefix" {
+  count               = var.create_public_ip_prefix ? 0 : 1
+  name                = var.public_ip_prefix_name
+  resource_group_name = var.public_ip_prefix_resource_group_name != null ? var.public_ip_prefix_resource_group_name : local.resource_group_name
+}
+
 resource "azurerm_public_ip_prefix" "pip_prefix" {
+  count               = var.create_public_ip_prefix ? 1 : 0
   name                = lower("${local.resource_prefix}-pip-prefix")
   location            = local.location
-  resource_group_name = local.resource_group_name
+  resource_group_name = var.public_ip_prefix_resource_group_name != null ? var.public_ip_prefix_resource_group_name : local.resource_group_name
   prefix_length       = 30
+
   tags                = merge({ "ResourceName" = lower("${local.resource_prefix}-pip-prefix") }, var.tags, )
 }
 
@@ -269,8 +287,9 @@ resource "azurerm_public_ip" "fw-pip" {
   resource_group_name = local.resource_group_name
   allocation_method   = "Static"
   sku                 = "Standard"
-  public_ip_prefix_id = azurerm_public_ip_prefix.pip_prefix.id
+  public_ip_prefix_id = element(coalescelist(data.azurerm_public_ip_prefix.pip_prefix.*.id, azurerm_public_ip_prefix.pip_prefix.*.id, [""]), 0)
   domain_name_label   = format("%s%s", lower(replace(each.key, "/[[:^alnum:]]/", "")), random_string.str[each.key].result)
+  
   tags                = merge({ "ResourceName" = lower("${local.resource_prefix}-pip-${each.key}") }, var.tags, )
 
   lifecycle {

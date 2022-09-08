@@ -167,6 +167,20 @@ module "vnet-hub" {
 }
 ```
 
+## Requirements
+Account that is executing this module MUST have permission to assign RBAC roles to specific resources.  This requires Owner or User Access Administrator 
+
+``shell
+az ad sp create-for-rbac --role="Owner" --scopes="/subscriptions/<subscription id>"
+```
+or if you already have a service principal add the Owner Role
+```shell
+# find the object id of the service principal
+az ad sp list --all --display-name "azure-cli" --query "[].objectId"
+
+az role assignment create --assignee-object-id <object id> --assignee-principal-type "ServicePrincipal" --role "Owner"
+```
+
 ## Create resource group
 
 By default, this module will create a resource group and the name of the resource group to be given in an argument `resource_group_name`. If you want to use an existing resource group, specify the existing resource group name, and set the argument to `create_resource_group = false`.

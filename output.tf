@@ -121,9 +121,8 @@ output "log_analytics_logs_retention_in_days" {
 
 output "public_ip_prefix_id" {
   description = "The id of the Public IP Prefix resource"
-  value       = azurerm_public_ip_prefix.pip_prefix.id
+  value       = var.create_firewall ? element(concat(azurerm_public_ip_prefix.pip_prefix.*.id, [""]), 0) : null
 }
-
 
 output "firewall_public_ip" {
   description = "the public ip of firewall."

@@ -152,7 +152,7 @@ variable "fw_diag_logs" {
   default     = ["AzureFirewallApplicationRule", "AzureFirewallNetworkRule", "AzureFirewallDnsProxy"]
 }
 
-variable storage_account { 
+variable "storage_account" { 
   description = "Details on the storage acccount"
   type        = object({ create = bool, tier = string, replication = string})
   default     = {
@@ -160,6 +160,27 @@ variable storage_account {
     tier        = "Standard"
     replication = "ZRS"
   }
+}
+
+variable "create_public_ip_prefix" {
+  description = "(Optional) Indicates if a new public ip prefix should be created (default true)"
+  default     = true
+}
+
+variable "public_ip_prefix_resource_group_name" {
+  description = "(Optional) The resource group that contains the public ip prefix (defaults to hub resource group)"
+  default     = null
+}
+
+variable "public_ip_prefix_name" {
+  description = "(Optional) The name of the public prefix to use"
+  default     = null
+}
+
+variable "route_table" {
+  description = "(Optional) Additional route table entries"
+  type        = list(object( { name = string, address_prefix = string, next_hop_type = string, next_hop_in_ip_address = string} ))
+  default     = []
 }
 
 variable "tags" {
